@@ -3,21 +3,30 @@ local util = require 'lspconfig/util'
 
 configs.leanls = {
   default_config = {
-    cmd = {"lean-language-server", "--stdio"};
+    cmd = {"lean", "--server"};
     filetypes = {"lean"};
     root_dir = function(fname)
-      return util.find_git_ancestor(fname) or vim.loop.os_homedir()
+      return util.root_pattern("leanpkg.toml")(fname) or util.find_git_ancestor(fname) or util.path.dirname(fname)
+    end;
+    on_new_config = function(config, root)
+      if not util.path.is_file(root .. "/leanpkg.toml") then return end
+      if not config.cmd_cwd then
+        config.cmd_cwd = root
+      end
     end;
   };
   docs = {
-    package_json = "https://raw.githubusercontent.com/leanprover/vscode-lean/master/package.json";
     description = [[
-https://github.com/leanprover/lean-client-js/tree/master/lean-language-server
+https://github.com/leanprover/lean4
 
-Lean language server.
+Lean installation instructions can be found
+[here](https://leanprover-community.github.io/get_started.html#regular-install).
+
+The Lean 4 language server is built-in with a Lean 4 install
+(and can be manually run with, e.g., `lean --server`).
     ]];
     default_config = {
-      root_dir = [[root_pattern(".git") or os_homedir]];
+      root_dir = [[root_pattern("leanpkg.toml") or root_pattern(".git") or path.dirname]];
     };
   };
 }
